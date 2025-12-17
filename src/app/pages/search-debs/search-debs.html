@@ -1,0 +1,76 @@
+<div class="search-debs-container">
+  <h2>Buscar Deudas Pendientes</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="searchDebts()" class="search-form">
+    <div class="form-group">
+      <label for="ci">Cédula de Identidad (CI)</label>
+      <input
+        type="text"
+        id="ci"
+        formControlName="ci"
+        placeholder="Ingrese el CI del cliente"
+        class="form-control"
+        [class.error]="ci?.invalid && ci?.touched"
+      />
+      <div class="error-message" *ngIf="ci?.invalid && ci?.touched">
+        <span *ngIf="ci?.errors?.['required']">El CI es requerido</span>
+      </div>
+    </div>
+    
+    <button
+      type="submit"
+      class="btn-search"
+      [disabled]="loading() || form.invalid"
+    >
+      <span *ngIf="!loading()">Buscar</span>
+      <span *ngIf="loading()">Buscando...</span>
+    </button>
+  </form>
+
+  <div class="error-alert" *ngIf="error()">
+    {{ error() }}
+  </div>
+
+  <div class="results-container" *ngIf="debts().length > 0">
+    <h3>Deudas Encontradas: {{ debts().length }}</h3>
+    <div class="table-container">
+      <table class="debts-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Estado</th>
+            <th>Monto</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let debt of debts()">
+            <td>{{ debt.label || debt.id || 'N/A' }}</td>
+            <td>
+              <span class="status-badge" [class.status-pending]="debt.status === 'PENDING'" 
+                    [class.status-paid]="debt.status === 'PAID'"
+                    [class.status-cancelled]="debt.status === 'CANCELLED'">
+                {{ debt.status || 'N/A' }}
+              </span>
+            </td>
+            <td class="amount">${{ debt.amount | formatNumber }}</td>
+            <td>
+              <button 
+                class="btn-action" 
+                type="button"
+                (click)="openPaymentUrl(debt.payUrl)"
+                [disabled]="!debt.payUrl"
+              >
+                Realizar Pago
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="no-results" *ngIf="!loading() && !error() && debts().length === 0 && form.get('ci')?.touched">
+    <p>No se encontraron deudas para el CI ingresado.</p>
+  </div>
+</div>

@@ -1,0 +1,139 @@
+<h3>Generar nueva compra de productos</h3>
+
+@if(loadingProducts()){
+    <p>Cargando productos...</p>
+}
+
+@if(products().length > 0) {
+    <form [formGroup]="form" (ngSubmit)="makeStore()">
+        <!-- Client Info -->
+        <div formGroupName="client" class="client-group">
+            <h4>Información del Cliente</h4>
+            
+            <div class="form-group">
+                <label for="clientType">Tipo:</label>
+                <input 
+                    id="clientType" 
+                    type="text" 
+                    formControlName="type" 
+                    class="form-control"
+                    placeholder="Ej: cip"
+                    [class.invalid]="form.get('client.type')?.invalid && form.get('client.type')?.touched"
+                />
+                @if(form.get('client.type')?.invalid && form.get('client.type')?.touched) {
+                    <small class="error">Este campo es requerido</small>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="clientNumber">Número:</label>
+                <input 
+                    id="clientNumber" 
+                    type="text" 
+                    formControlName="number" 
+                    class="form-control"
+                    placeholder="Ej: 3909000"
+                    [class.invalid]="form.get('client.number')?.invalid && form.get('client.number')?.touched"
+                />
+                @if(form.get('client.number')?.invalid && form.get('client.number')?.touched) {
+                    <small class="error">Este campo es requerido</small>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="clientLabel">Nombre del Cliente:</label>
+                <input 
+                    id="clientLabel" 
+                    type="text" 
+                    formControlName="label" 
+                    class="form-control"
+                    placeholder="Ej: Mauricio Aponte"
+                    [class.invalid]="form.get('client.label')?.invalid && form.get('client.label')?.touched"
+                />
+                @if(form.get('client.label')?.invalid && form.get('client.label')?.touched) {
+                    <small class="error">Este campo es requerido</small>
+                }
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="products-group">
+            <div class="products-header">
+                <h4>Productos</h4>
+                <button type="button" (click)="addProduct()" class="btn-add">+ Agregar Producto</button>
+            </div>
+
+            <div formArrayName="products">
+                @for(productControl of productsFormArray.controls; track $index) {
+                    <div [formGroupName]="$index" class="product-item">
+                        <div class="form-group">
+                            <label>Producto:</label>
+                            <select 
+                                formControlName="id" 
+                                class="form-control"
+                                [class.invalid]="productControl.get('id')?.invalid && productControl.get('id')?.touched"
+                            >
+                                <option value="">Seleccione un producto</option>
+                                @for(product of products(); track product.id) {
+                                    <option [value]="product.id">{{ product.name }} - ${{ product.price }}</option>
+                                }
+                            </select>
+                            @if(productControl.get('id')?.invalid && productControl.get('id')?.touched) {
+                                <small class="error">Debe seleccionar un producto</small>
+                            }
+                        </div>
+
+                        <div class="form-group">
+                            <label>Cantidad:</label>
+                            <input 
+                                type="number" 
+                                formControlName="quantity" 
+                                class="form-control"
+                                min="1"
+                                [class.invalid]="productControl.get('quantity')?.invalid && productControl.get('quantity')?.touched"
+                            />
+                            @if(productControl.get('quantity')?.invalid && productControl.get('quantity')?.touched) {
+                                <small class="error">La cantidad debe ser mayor a 0</small>
+                            }
+                        </div>
+
+                        <button type="button" (click)="removeProduct($index)" class="btn-remove">Eliminar</button>
+                    </div>
+                }
+            </div>
+
+            @if(productsFormArray.length === 0) {
+                <p class="no-products">No hay productos agregados. Haz clic en "Agregar Producto" para comenzar.</p>
+            }
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+            <button 
+                type="submit" 
+                class="btn-submit"
+                [disabled]="loading() || form.invalid || productsFormArray.length === 0"
+            >
+                @if(loading()) {
+                    Enviando...
+                } @else {
+                    Crear Compra
+                }
+            </button>
+        </div>
+    </form>
+}
+
+<!-- Payment URL Button -->
+@if(payUrl()) {
+    <div class="response-container">
+        <h4>¡Compra creada exitosamente!</h4>
+        <button 
+            type="button" 
+            class="btn-payment"
+            (click)="openPaymentUrl()"
+        >
+            Abrir Link de Pago
+        </button>
+    </div>
+}
