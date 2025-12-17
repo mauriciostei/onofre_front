@@ -1,31 +1,29 @@
-# Etapa 1: Build del proyecto Angular
+# Etapa 1: Build de Angular
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
 # Copiamos package.json y package-lock.json para instalar dependencias
 COPY package*.json ./
-
-# Instalamos dependencias
-RUN npm ci
+RUN npm install
 
 # Copiamos todo el proyecto
 COPY . .
 
-# Build en modo producción
-RUN npm run build -- --configuration=production
+# Build de Angular en modo producción
+RUN npm run build -- --configuration production
 
-# Etapa 2: Imagen mínima con Nginx para servir Angular
+# Etapa 2: Servir con Nginx
 FROM nginx:alpine
 
-# Copiamos los archivos build de Angular a Nginx
+# Copiamos archivos de Angular a Nginx
 COPY --from=build /app/dist/onofre_front /usr/share/nginx/html
 
-# Copiamos configuración de Nginx personalizada (opcional)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Configuración de Nginx para SPA (routing Angular)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Exponemos puerto
-EXPOSE 80
+# Exponer puerto 4200
+EXPOSE 4200
 
-# Arranque de Nginx en foreground
+# Arrancar Nginx en primer plano
 CMD ["nginx", "-g", "daemon off;"]
