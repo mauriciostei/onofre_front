@@ -1,37 +1,31 @@
-# =====================
-# Etapa 1: Build
-# =====================
+# Etapa 1: Build del proyecto Angular
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Instala dependencias
+# Copiamos package.json y package-lock.json para instalar dependencias
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
 
-# Copiamos el resto del proyecto
+# Instalamos dependencias
+RUN npm ci
+
+# Copiamos todo el proyecto
 COPY . .
 
-# Opcional: si quieres inyectar variables antes de build
-# ENV API_URL=http://mi-api:8080
-# RUN sed -i "s|http://localhost:8080|${API_URL}|g" src/environments/env.ts
+# Build en modo producción
+RUN npm run build -- --configuration=production
 
-# Build de Angular
-RUN npm run build -- --output-path=dist --configuration=production
-
-# =====================
-# Etapa 2: Servidor estático
-# =====================
+# Etapa 2: Imagen mínima con Nginx para servir Angular
 FROM nginx:alpine
 
-# Copiamos build de Angular al contenedor de Nginx
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copiamos los archivos build de Angular a Nginx
+COPY --from=build /app/dist/onofre_front /usr/share/nginx/html
 
-# Copiamos configuración de Nginx si quieres (opcional)
-# COPY nginx.conf /etc/nginx/nginx.conf
+# Copiamos configuración de Nginx personalizada (opcional)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Exponemos puerto
 EXPOSE 80
 
-# Arranca Nginx
+# Arranque de Nginx en foreground
 CMD ["nginx", "-g", "daemon off;"]
