@@ -16,14 +16,14 @@ RUN npm run build -- --configuration production
 # Etapa 2: Servir con Nginx
 FROM nginx:alpine
 
-# Copiamos archivos de Angular a Nginx
-COPY --from=build /app/dist/onofre_front /usr/share/nginx/html
+# Copiamos archivos de Angular a Nginx (Angular genera los archivos en browser/)
+COPY --from=build /app/dist/onofre_front/browser /usr/share/nginx/html
 
 # Configuración de Nginx para SPA (routing Angular)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Exponer puerto 4200
-EXPOSE 4200
+# Exponer puerto 80 (nginx escucha en 80 según nginx.conf)
+EXPOSE 80
 
 # Arrancar Nginx en primer plano
 CMD ["nginx", "-g", "daemon off;"]
